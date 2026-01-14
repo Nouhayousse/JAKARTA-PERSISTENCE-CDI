@@ -1,75 +1,94 @@
 # JAKARTA-PERSISTENCE-CDI
 
-## 📌 Project Overview
-**JAKARTA-PERSISTENCE-CDI** is a personal Jakarta EE project designed to explore and understand the core concepts of **Jakarta CDI**, **Jakarta Persistence (JPA)**, and **application deployment on WildFly**.
-
-The project implements a simple **Client CRUD** to focus on the most important learning objectives: dependency injection, persistence configuration, and server-side Java application structure.  
-It is packaged as a **WAR** and intended for deployment on a Jakarta EE–compatible application server.
+A personal Jakarta EE project that demonstrates core Jakarta CDI and Jakarta Persistence (JPA) concepts, packaged as a WAR for deployment on a Jakarta EE–compatible server (WildFly). The project implements a simple Client CRUD to focus on dependency injection, persistence configuration, and server-side Java application structure.
 
 ---
 
-## 🎯 Project Goals
-- Discover and practice **Jakarta CDI** and inversion of control
-- Understand **JPA persistence** and entity mapping
-- Learn how to configure and deploy applications on **WildFly**
-- Build a clean and simple **CRUD architecture** using Servlets and JSP
+## Table of contents
+- [Project overview](#project-overview)
+- [Project goals](#project-goals)
+- [Features](#features)
+- [Project architecture](#project-architecture)
+- [Tech stack](#tech-stack)
+- [Setup & installation](#setup--installation)
+  - [Prerequisites](#prerequisites)
+  - [Steps](#steps)
+  - [Running the application](#running-the-application)
+- [Author & role](#author--role)
+- [Notes](#notes)
+
+---
+
+## Project overview
+**JAKARTA-PERSISTENCE-CDI** is a concise learning project to explore Jakarta CDI, JPA, and deployment practices on WildFly. The application focuses on a simple domain model (Client) and provides full CRUD operations implemented using Servlets, JSP, and a DAO layer leveraging JPA.
+
+Key points:
+- Emphasis on dependency injection, persistence configuration, and application structure.
+- Packaged as a WAR for deployment to a Jakarta EE server.
+
+---
+
+## Project goals
+- Discover and practice Jakarta CDI and inversion of control
+- Understand JPA persistence and entity mapping
+- Learn how to configure and deploy applications on WildFly
+- Build a clean and simple CRUD architecture using Servlets and JSP
 - Gain hands-on experience with Jakarta EE project structure
 
 ---
 
-## ✨ Features
-- CDI-enabled components using `beans.xml`
+## Features
+- CDI-enabled components via `beans.xml`
 - JPA entity mapping for the `Client` domain model
-- DAO layer handling persistence logic and transactions
-- Servlet-based controller using dependency injection (`@Inject`)
+- DAO layer for persistence logic and transaction management
+- Servlet-based controller using `@Inject` for dependency injection
 - JSP/JSTL views for displaying and managing data
-- Full CRUD operations (Create, Read, Update, Delete)
+- Full CRUD (Create, Read, Update, Delete) operations
 - Configurable datasource via `persistence.xml`
 
 ---
 
-## 🏗️ Project Architecture
-The application follows a simple layered architecture:
+## Project architecture
+A simple layered layout is used to keep concerns separated.
 
+```
 src/main/java
 ├── entities/
-│ └── Client.java # JPA entity
+│   └── Client.java         # JPA entity
 ├── dao/
-│ └── ClientDAO.java # CRUD & persistence logic
+│   └── ClientDAO.java      # CRUD & persistence logic
 └── servlet/
-└── ClientServlet.java # Controller (request handling)
+    └── ClientServlet.java  # Controller (request handling)
 
 src/main/resources/META-INF
-├── persistence.xml # JPA & datasource configuration
-└── beans.xml # CDI activation
+├── persistence.xml         # JPA & datasource configuration
+└── beans.xml               # CDI activation
 
 src/main/webapp
 ├── WEB-INF/
-│ └── web.xml # Servlet configuration
-├── index.jsp # Entry point
-└── clients.jsp # CRUD user interface
-
-markdown
-Copier le code
+│   └── web.xml             # Servlet configuration
+├── index.jsp               # Entry point
+└── clients.jsp             # CRUD user interface
+```
 
 ---
 
-## 🧰 Tech Stack
-- **Java** (JDK 17+)
-- **Maven** (build & dependency management)
-- **Jakarta EE**
+## Tech stack
+- Java (JDK 17+)
+- Maven (build & dependency management)
+- Jakarta EE
   - CDI
   - Jakarta Persistence (JPA)
   - Servlets
   - JSP / JSTL
-- **JPA Provider**: Hibernate
-- **Database**: Microsoft SQL Server (MSSQL)
-- **Application Server**: WildFly 38
-- **JDBC Driver**: Microsoft JDBC Driver for SQL Server
+- JPA Provider: Hibernate
+- Database: Microsoft SQL Server (MSSQL)
+- Application Server: WildFly 38
+- JDBC Driver: Microsoft JDBC Driver for SQL Server
 
 ---
 
-## ⚙️ Setup & Installation
+## Setup & installation
 
 ### Prerequisites
 - JDK 17 or higher
@@ -83,53 +102,54 @@ Copier le code
    ```bash
    git clone https://github.com/Nouhayousse/JAKARTA-PERSISTENCE-CDI.git
    cd JAKARTA-PERSISTENCE-CDI
-Build the project:
+   ```
 
-bash
-Copier le code
-mvn clean package
-Configure the datasource on WildFly:
+2. Build the project:
+   ```bash
+   mvn clean package
+   ```
 
-Register the MSSQL JDBC driver
+3. Configure the datasource on WildFly:
+   - Register the MSSQL JDBC driver with WildFly.
+   - Create a datasource in the WildFly management console or CLI.
+   - Ensure the datasource JNDI name matches the one defined in `persistence.xml` (for example: `java:/MSSQLDSs`).
 
-Create a datasource
+---
 
-Ensure the JNDI name matches the one defined in persistence.xml
-(e.g. java:/MSSQLDSs)
+## Running the application
 
-▶️ Running the Application
-Deploy the generated WAR file from the target/ directory to:
+1. Deploy the generated WAR file:
+   - Copy the WAR from `target/` to WildFly deployments directory:
+     ```bash
+     cp target/JAKARTA-PERSISTENCE-CDI.war <wildfly-home>/standalone/deployments/
+     ```
 
-arduino
-Copier le code
-<wildfly-home>/standalone/deployments/
-Start WildFly:
+2. Start WildFly (if not already running):
+   ```bash
+   <wildfly-home>/bin/standalone.sh
+   ```
 
-bash
-Copier le code
-standalone.sh
-Access the application:
+3. Access the application in your browser:
+   - Home page:
+     ```
+     http://localhost:8080/JAKARTA-PERSISTENCE-CDI/
+     ```
+   - Direct servlet access:
+     ```
+     http://localhost:8080/JAKARTA-PERSISTENCE-CDI/ClientServlet
+     ```
 
-Home page:
+---
 
-arduino
-Copier le code
-http://localhost:8080/JAKARTA-PERSISTENCE-CDI/
-Direct servlet access:
+## Author & role
+- **Author:** Nouhayousse  
+- **Role:** Full implementation (architecture, CDI, JPA, Servlets, JSP, database configuration)
 
-arduino
-Copier le code
-http://localhost:8080/JAKARTA-PERSISTENCE-CDI/ClientServlet
-👩‍💻 Author & Role
-Author: Nouhayousse
+This project is a personal implementation completed end-to-end to deepen understanding of Jakarta EE fundamentals.
 
-Role: Full implementation (architecture, CDI, JPA, Servlets, JSP, database configuration)
+---
 
-This project is fully personal and was implemented end-to-end to deepen understanding of Jakarta EE fundamentals.
-
-📝 Notes
-The project focuses on learning and clarity, not production-scale optimization
-
-The Client entity is intentionally simple to highlight Jakarta CDI and persistence concepts
-
-The application can easily be extended with additional entities or REST endpoints
+## Notes
+- The project prioritizes learning and clarity over production-scale optimizations.
+- The `Client` entity is intentionally simple to highlight CDI and persistence concepts.
+- The application is readily extensible with additional entities or REST endpoints if desired.
