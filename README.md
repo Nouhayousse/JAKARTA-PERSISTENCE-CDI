@@ -1,231 +1,135 @@
 # JAKARTA-PERSISTENCE-CDI
 
-A sample project demonstrating how to use Jakarta Persistence (JPA) together with Contexts and Dependency Injection (CDI). This repository provides patterns and examples for configuring persistence, defining entities, writing repository/DAO classes and using CDI to inject persistence contexts and services.
+## 📌 Project Overview
+**JAKARTA-PERSISTENCE-CDI** is a personal Jakarta EE project designed to explore and understand the core concepts of **Jakarta CDI**, **Jakarta Persistence (JPA)**, and **application deployment on WildFly**.
 
-> NOTE: This README was generated from the repository metadata. For a README tailored exactly to the current codebase (examples, package names, build tool configuration), provide the repository files (pom.xml / build.gradle, `src/main/java`, `src/main/resources/persistence.xml`) or grant access so I can read them and regenerate the README automatically.
-
-## Table of contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Project structure](#project-structure)
-- [Configuration (persistence)](#configuration-persistence)
-- [Common usage patterns](#common-usage-patterns)
-  - [Entity example](#entity-example)
-  - [Repository / DAO example](#repository--dao-example)
-  - [CDI injection example](#cdi-injection-example)
-- [Build and run](#build-and-run)
-- [Testing](#testing)
-- [Troubleshooting & tips](#troubleshooting--tips)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Overview
-
-This project demonstrates how to integrate Jakarta Persistence (JPA) with CDI-based components in a lightweight or Jakarta EE environment. It can be used as a learning template, for small microservices, or as a starting point for migrating older Java EE/JPA apps to Jakarta APIs.
-
-## Features
-
-- Jakarta Persistence (JPA) configuration
-- Example entity classes and mappings
-- Repository / DAO layer patterns
-- CDI-managed services and injection of `EntityManager` / repositories
-- Example tests (unit/integration) scaffolding
-
-## Prerequisites
-
-- Java 11+ (or Java version required by your project)
-- Maven 3.6+ or Gradle (adjust commands below)
-- A JPA provider (Hibernate ORM, EclipseLink, etc.)
-- A relational database (H2 for local testing, PostgreSQL, MySQL, etc.)
-
-## Project structure
-
-A typical layout for this repository:
-
-- src/main/java — application and example code
-  - com.example.entity — JPA entity classes
-  - com.example.repository — repository/DAO classes
-  - com.example.service — CDI services using repositories
-  - com.example.app — main / bootstrap classes (optional)
-- src/main/resources
-  - META-INF/persistence.xml — JPA persistence unit configuration
-- src/test — unit and integration tests
-- pom.xml / build.gradle — build file (Maven / Gradle)
-
-Adjust package names to match the actual repository packages.
-
-## Configuration (persistence)
-
-A minimal `persistence.xml` (put under `src/main/resources/META-INF/persistence.xml`):
-
-```xml
-<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
-                                 https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
-             version="3.0">
-  <persistence-unit name="defaultPU" transaction-type="RESOURCE_LOCAL">
-    <!-- Replace the provider with your JPA implementation -->
-    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-
-    <class>com.example.entity.YourEntity</class>
-
-    <properties>
-      <!-- Example H2 in-memory DB for development -->
-      <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>
-      <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1"/>
-      <property name="jakarta.persistence.jdbc.user" value="sa"/>
-      <property name="jakarta.persistence.jdbc.password" value=""/>
-
-      <!-- Hibernate-specific -->
-      <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-      <property name="hibernate.hbm2ddl.auto" value="update"/>
-      <property name="hibernate.show_sql" value="true"/>
-      <property name="hibernate.format_sql" value="true"/>
-    </properties>
-  </persistence-unit>
-</persistence>
-```
-
-Tip: For Jakarta EE application servers, switch `transaction-type` to `JTA` and configure the datasource in the server.
-
-## Common usage patterns
-
-Entity example (JPA):
-
-```java
-package com.example.entity;
-
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "person")
-public class Person {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
-    private String name;
-
-    // getters / setters
-}
-```
-
-Repository / DAO example:
-
-```java
-package com.example.repository;
-
-import com.example.entity.Person;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
-import java.util.List;
-
-@ApplicationScoped
-public class PersonRepository {
-
-    @PersistenceContext(unitName = "defaultPU")
-    private EntityManager em;
-
-    public Person find(Long id) {
-        return em.find(Person.class, id);
-    }
-
-    public List<Person> listAll() {
-        return em.createQuery("SELECT p FROM Person p", Person.class).getResultList();
-    }
-
-    @Transactional
-    public Person save(Person p) {
-        if (p.getId() == null) {
-            em.persist(p);
-            return p;
-        } else {
-            return em.merge(p);
-        }
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        Person p = find(id);
-        if (p != null) em.remove(p);
-    }
-}
-```
-
-CDI injection example (service using repository):
-
-```java
-package com.example.service;
-
-import com.example.entity.Person;
-import com.example.repository.PersonRepository;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import java.util.List;
-
-@ApplicationScoped
-public class PersonService {
-
-    @Inject
-    PersonRepository repo;
-
-    public List<Person> getAll() {
-        return repo.listAll();
-    }
-
-    public Person create(Person p) {
-        return repo.save(p);
-    }
-}
-```
-
-If your environment does not support `@PersistenceContext`, you can obtain an `EntityManagerFactory` via CDI and create `EntityManager` instances manually.
-
-## Build and run
-
-Maven:
-
-- Build: mvn -B -e -U clean package
-- Run tests: mvn test
-- Run (example for a fat jar if the project builds one): java -jar target/your-app.jar
-
-If the project is intended for an application server (Payara/Quarkus/WildFly/Tomcat with Jakarta APIs), follow the server packaging and deployment steps.
-
-## Testing
-
-- Use an in-memory database (H2) for unit/integration tests to keep them fast and isolated.
-- Use Arquillian or Testcontainers for real-container or real-database integration tests where appropriate.
-- Example Maven profile for tests can override JDBC properties to use H2.
-
-## Troubleshooting & tips
-
-- If you see mapping errors, enable SQL and DDL logging (hibernate.show_sql, hbm2ddl).
-- For container-managed environments, prefer `JTA` and `@PersistenceContext` injection.
-- Use transactions (`@Transactional`) for methods performing write operations.
-- Match Jakarta API versions across dependencies (Jakarta EE 9+ changed package names from javax.* to jakarta.*).
-
-## Contributing
-
-- Fork the repository and open a pull request with clear, focused changes.
-- Add tests for bug fixes and new features.
-- Follow the existing code style and package conventions.
-
-## License
-
-Specify a license (e.g., Apache-2.0, MIT). If the repository already contains a LICENSE file, ensure the README reflects it:
-
-This project is licensed under the [MIT License](LICENSE) — see the LICENSE file for details.
+The project implements a simple **Client CRUD** to focus on the most important learning objectives: dependency injection, persistence configuration, and server-side Java application structure.  
+It is packaged as a **WAR** and intended for deployment on a Jakarta EE–compatible application server.
 
 ---
 
-If you want a README generated exactly from the project's sources, I can update this file to include concrete examples, package names and build commands — please either:
-- Grant read access so I can inspect the repository, or
-- Paste the following files or their contents: `pom.xml` or `build.gradle`, `src/main/resources/META-INF/persistence.xml`, one example entity and one service/repository file.
+## 🎯 Project Goals
+- Discover and practice **Jakarta CDI** and inversion of control
+- Understand **JPA persistence** and entity mapping
+- Learn how to configure and deploy applications on **WildFly**
+- Build a clean and simple **CRUD architecture** using Servlets and JSP
+- Gain hands-on experience with Jakarta EE project structure
 
-I will then regenerate the README with precise, repository-specific instructions and examples.
+---
 
+## ✨ Features
+- CDI-enabled components using `beans.xml`
+- JPA entity mapping for the `Client` domain model
+- DAO layer handling persistence logic and transactions
+- Servlet-based controller using dependency injection (`@Inject`)
+- JSP/JSTL views for displaying and managing data
+- Full CRUD operations (Create, Read, Update, Delete)
+- Configurable datasource via `persistence.xml`
+
+---
+
+## 🏗️ Project Architecture
+The application follows a simple layered architecture:
+
+src/main/java
+├── entities/
+│ └── Client.java # JPA entity
+├── dao/
+│ └── ClientDAO.java # CRUD & persistence logic
+└── servlet/
+└── ClientServlet.java # Controller (request handling)
+
+src/main/resources/META-INF
+├── persistence.xml # JPA & datasource configuration
+└── beans.xml # CDI activation
+
+src/main/webapp
+├── WEB-INF/
+│ └── web.xml # Servlet configuration
+├── index.jsp # Entry point
+└── clients.jsp # CRUD user interface
+
+markdown
+Copier le code
+
+---
+
+## 🧰 Tech Stack
+- **Java** (JDK 17+)
+- **Maven** (build & dependency management)
+- **Jakarta EE**
+  - CDI
+  - Jakarta Persistence (JPA)
+  - Servlets
+  - JSP / JSTL
+- **JPA Provider**: Hibernate
+- **Database**: Microsoft SQL Server (MSSQL)
+- **Application Server**: WildFly 38
+- **JDBC Driver**: Microsoft JDBC Driver for SQL Server
+
+---
+
+## ⚙️ Setup & Installation
+
+### Prerequisites
+- JDK 17 or higher
+- Apache Maven
+- WildFly 38
+- Microsoft SQL Server
+- MSSQL JDBC Driver installed on WildFly
+
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Nouhayousse/JAKARTA-PERSISTENCE-CDI.git
+   cd JAKARTA-PERSISTENCE-CDI
+Build the project:
+
+bash
+Copier le code
+mvn clean package
+Configure the datasource on WildFly:
+
+Register the MSSQL JDBC driver
+
+Create a datasource
+
+Ensure the JNDI name matches the one defined in persistence.xml
+(e.g. java:/MSSQLDSs)
+
+▶️ Running the Application
+Deploy the generated WAR file from the target/ directory to:
+
+arduino
+Copier le code
+<wildfly-home>/standalone/deployments/
+Start WildFly:
+
+bash
+Copier le code
+standalone.sh
+Access the application:
+
+Home page:
+
+arduino
+Copier le code
+http://localhost:8080/JAKARTA-PERSISTENCE-CDI/
+Direct servlet access:
+
+arduino
+Copier le code
+http://localhost:8080/JAKARTA-PERSISTENCE-CDI/ClientServlet
+👩‍💻 Author & Role
+Author: Nouhayousse
+
+Role: Full implementation (architecture, CDI, JPA, Servlets, JSP, database configuration)
+
+This project is fully personal and was implemented end-to-end to deepen understanding of Jakarta EE fundamentals.
+
+📝 Notes
+The project focuses on learning and clarity, not production-scale optimization
+
+The Client entity is intentionally simple to highlight Jakarta CDI and persistence concepts
+
+The application can easily be extended with additional entities or REST endpoints
